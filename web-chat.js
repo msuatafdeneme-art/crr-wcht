@@ -1,4 +1,4 @@
-/**
+ /**
  * WebChat - Modern Web Chat Widget
  * Kullanım: Sayfanıza script'i ekleyin ve WebChat.init() çağırın
  */
