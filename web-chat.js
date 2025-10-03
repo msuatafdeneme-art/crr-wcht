@@ -226,7 +226,7 @@ class WebChat {
       }
  
       .cw-header {
-        background: linear-gradient(135deg, #AD4E31 0%, #AD4E31 100%);
+        background: linear-gradient(135deg, #AF3F27 0%, #AF3F27 100%);
         color: white;
         padding: 20px;
         height: 12%;
