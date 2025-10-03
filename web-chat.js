@@ -662,7 +662,7 @@ class WebChat {
       }
 
       .cw-permissions-section {
-        margin-top: 5px;
+        margin-top: 2px;
       }
 
       .cw-checkbox-group {
