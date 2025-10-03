@@ -82,6 +82,34 @@ class WebChat {
         box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
       }
 
+      .cw-tooltip {
+        position: absolute;
+        right: 70px;
+        top: 55%;
+        transform: translateY(-50%);
+        background: white;
+        color: #333;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        opacity: 0.9;
+        pointer-events: none;
+        z-index: 10000;
+      }
+
+      .cw-tooltip::after {
+        content: '';
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        border: 6px solid transparent;
+        border-left-color: white;
+      }
+
       .cw-button img {
         width: 35px;
         height: 35px;
@@ -201,10 +229,10 @@ class WebChat {
         background: linear-gradient(135deg, #AD4E31 0%, #AD4E31 100%);
         color: white;
         padding: 20px;
-        height: 10%;
+        height: 12%;
         display: flex;
-        align-items: center;
-        justify-content: space-between;
+        flex-direction: column;
+        justify-content: center;
         position: relative;
       }
 
@@ -212,7 +240,20 @@ class WebChat {
         max-width: 150px;
         max-height: 60px;
         object-fit: contain;
-        margin: 0 auto;
+        margin: 8px auto 0 auto;
+        align-self: center;
+      }
+
+      .cw-header-text {
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.3;
+        color: rgba(255, 255, 255, 0.9);
+        max-width: 260px;
+        margin: 0;
+        text-align: left;
+        width: 100%;
+        align-self: flex-start;
       }
 
       .cw-close-btn {
@@ -480,6 +521,24 @@ class WebChat {
         padding: 20px;
         height: 100%;
         overflow-y: auto;
+        background:rgb(255, 255, 255);
+      }
+
+      .cw-form-welcome {
+        font-size: 16px;
+        font-weight: 700;
+        color: #AD4E31;
+        margin-bottom: 8px;
+        text-align: left;
+      }
+
+      .cw-form-intro {
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.3;
+        color: #333;
+        margin-bottom: 16px;
+        text-align: left;
       }
 
       .cw-contact-form {
@@ -489,40 +548,113 @@ class WebChat {
       }
 
       .cw-form-group {
-        display: flex;
-        flex-direction: column;
+        position: relative;
+        margin-bottom: 12px;
       }
 
       .cw-form-group label {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
         font-size: 14px;
-        font-weight: 500;
-        color: #333;
-        margin-bottom: 6px;
+        font-weight: 400;
+        color: rgba(173, 78, 49, 0.6);
+        pointer-events: none;
+        transition: all 0.3s ease;
+        background: white;
+        padding: 0 4px;
+        z-index: 1;
       }
 
       .cw-form-group input,
-      .cw-form-group select {
-        padding: 12px;
-        border: 1px solid #ddd;
+      .cw-form-group select,
+      .cw-country-code {
+        width: 100%;
+        padding: 16px 12px 8px 12px;
+         border: 2px solid rgba(173, 78, 49, 0.3);
         border-radius: 8px;
         font-size: 14px;
-        transition: border-color 0.3s ease;
+        background: #FEFEFE;
+        transition: all 0.3s ease;
+        position: relative;
       }
 
       .cw-form-group input:focus,
-      .cw-form-group select:focus {
+      .cw-form-group select:focus,
+      .cw-country-code:focus,
+      .cw-form-group input:not(:placeholder-shown),
+      .cw-form-group select:not(:placeholder-shown) {
         outline: none;
         border-color: #AD4E31;
       }
 
+      .cw-form-group input:focus + label,
+      .cw-form-group input:not(:placeholder-shown) + label,
+      .cw-form-group select:focus + label,
+      .cw-form-group select:not(:placeholder-shown) + label,
+      .cw-form-group.has-value label {
+        top: 0;
+        font-size: 12px;
+        color: #AD4E31;
+        font-weight: 500;
+      }
+
       .cw-phone-group {
         display: flex;
-        gap: 8px;
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      .cw-phone-input-wrapper {
+        position: relative;
+        flex: 1;
+      }
+
+      .cw-phone-input-wrapper input {
+        width: 100%;
+      }
+
+      .cw-phone-input-wrapper label {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 14px;
+        font-weight: 400;
+        color: rgba(173, 78, 49, 0.6);
+        pointer-events: none;
+        transition: all 0.3s ease;
+        background: white;
+        padding: 0 4px;
+        z-index: 1;
+      }
+
+      .cw-phone-input-wrapper input:focus + label,
+      .cw-phone-input-wrapper input:not(:placeholder-shown) + label {
+        top: 0;
+        font-size: 12px;
+        color: #AD4E31;
+        font-weight: 500;
       }
 
       .cw-country-code {
-        width: 80px;
+        width: 60px !important;
+        min-width: 60px;
+        max-width: 60px;
         flex-shrink: 0;
+        padding: 16px 2px 8px 2px !important;
+        font-size: 12px !important;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 4px center;
+        background-size: 12px;
+        padding-right: 20px !important;
       }
 
       .cw-phone-input {
@@ -603,24 +735,26 @@ class WebChat {
       .cw-error-message {
         color: #dc2626;
         font-size: 12px;
-        margin-top: 4px;
+        margin-top: 2px;
+        margin-bottom: -8px;
         padding-left: 4px;
       }
 
       .cw-warning-message {
         color: #f59e0b;
         font-size: 12px;
-        margin-top: 4px;
+        margin-top: 2px;
+        margin-bottom: -8px;
         padding-left: 4px;
       }
 
       /* Loading Page Styles */
       .cw-loading-container {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
         height: 100%;
-        padding: 40px 20px;
+        padding: 60px 20px 40px 20px;
       }
 
       .cw-loading-content {
@@ -698,6 +832,7 @@ class WebChat {
     
     container.innerHTML = `
       <button class="cw-button" id="cw-toggle">
+        <div class="cw-tooltip">Canlı Destek</div>
         <img class="icon-chat" src="data:image/png;base64,${iconBase64}" alt="Chat">
         <svg class="icon-close" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -707,6 +842,7 @@ class WebChat {
         <div class="cw-window" id="cw-window">
         <div class="cw-header">
           <img class="cw-header-logo" src="data:image/png;base64,${headerLogoBase64}" alt="Logo">
+           
           <button class="cw-close-btn" id="cw-close-btn" type="button">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path d="M7 14l5-5 5 5z"/>
@@ -715,28 +851,34 @@ class WebChat {
         </div>
         
         <div class="cw-form-container">
+          <div class="cw-form-welcome">Hoş Geldiniz</div>
+          <div class="cw-form-intro">
+            Müşteri temsilcilerimizin size daha iyi hizmet verebilmesi için formu doldurmanızı rica ederiz.
+          </div>
           <form class="cw-contact-form" id="cw-contact-form">
             
             <div class="cw-form-group">
-              <label for="cw-name">Adınız Soyadınız</label>
-              <input type="text" id="cw-name" name="name" placeholder="Adınız Soyadınız" required>
+              <input type="text" id="cw-name" name="name" placeholder=" " required>
+              <label for="cw-name">Adınız Soyadınız*</label>
             </div>
             
             <div class="cw-form-group">
-              <label for="cw-email">E-Posta</label>
-              <input type="email" id="cw-email" name="email" placeholder="E-Posta" required>
+              <input type="email" id="cw-email" name="email" placeholder=" " required>
+              <label for="cw-email">E-Posta*</label>
               <div class="cw-error-message" id="cw-email-error" style="display: none;">
                 Geçerli bir e-posta adresi giriniz. (örn: ornek@domain.com)
               </div>
             </div>
-            
+             
             <div class="cw-form-group">
-              <label for="cw-phone">Telefon Numarası</label>
               <div class="cw-phone-group">
                 <select class="cw-country-code" id="cw-country-code" name="countryCode">
-                  <option value="+90">+90</option>
+                  <option value="+90" selected>+90</option>
                 </select>
-                <input type="tel" class="cw-phone-input" id="cw-phone" name="phone" placeholder="5XX XXX XX XX" minlength="10" maxlength="15" required>
+                <div class="cw-phone-input-wrapper">
+                  <input type="tel" class="cw-phone-input" id="cw-phone" name="phone" placeholder=" " minlength="10" maxlength="15" required>
+                  <label for="cw-phone">Telefon Numarası*</label>
+                </div>
               </div>
               <div class="cw-error-message" id="cw-phone-error" style="display: none;">
                 Telefon numarası en az 10, en fazla 15 karakter olmalıdır.
