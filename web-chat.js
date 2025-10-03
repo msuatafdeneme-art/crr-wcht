@@ -66,7 +66,7 @@ class WebChat {
         width: 60px;
         height: 60px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #AD4E31 0%, #C85A3C 100%);
+        background: linear-gradient(135deg, #AF3F27 0%, #AF3F27 100%);
         border: none;
         cursor: pointer;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
