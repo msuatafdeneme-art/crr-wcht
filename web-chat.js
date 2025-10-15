@@ -6,12 +6,12 @@
 class WebChat {
   constructor(config = {}) {
     this.config = {
-      title: config.title || 'Web Chat',
-      placeholder: config.placeholder || 'Mesajınızı yazın...',
-      theme: config.theme || 'blue',
-      position: config.position || 'bottom-right',
-      botName: config.botName || 'Bot',
-      userName: config.userName || 'Sen',
+       
+      // API Configuration
+      apiUrl: config.apiUrl || 'https://chatserver.alo-tech.com/chat-api',
+      cwid: config.cwid || 'chat-widget-key',
+      securityToken: config.securityToken || 'security-token-from-chat-widget',
+      namespace: config.namespace || '',
       ...config
     };
     
@@ -19,6 +19,11 @@ class WebChat {
     this.messages = [];
     this.container = null;
     this.customerData = null; // Kullanıcı verilerini tutmak için
+    
+    // API Related Properties
+    this.chatToken = null; // API'den dönen token
+    this.chatSessionActive = false;
+    this.isConnecting = false;
     
     this.init();
   }
@@ -286,13 +291,16 @@ class WebChat {
       }
 
       .cw-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px;
-        background: #f8f9fa;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+        flex: 1 1 auto !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        padding: 15px !important;
+        background: white !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        min-height: 0 !important;
+        position: relative !important;
       }
 
       .cw-messages::-webkit-scrollbar {
@@ -426,12 +434,6 @@ class WebChat {
         }
       }
 
-      .cw-input-container {
-        padding: 20px;
-        background: white;
-        border-top: 1px solid #e2e8f0;
-      }
-
       .cw-input-wrapper {
         display: flex;
         gap: 10px;
@@ -522,6 +524,79 @@ class WebChat {
         height: 100%;
         overflow-y: auto;
         background:rgb(255, 255, 255);
+      }
+
+      .cw-chat-container {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        width: 100% !important;
+        position: relative !important;
+        overflow: hidden !important;
+      }
+
+      .cw-input-container {
+        display: flex !important;
+        flex-shrink: 0 !important;
+        padding: 15px !important;
+        border-top: 1px solid #e2e8f0 !important;
+        background: white !important;
+        align-items: center !important;
+        gap: 10px !important;
+        position: relative !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .cw-input {
+        flex: 1 1 auto !important;
+        padding: 12px 16px !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 25px !important;
+        outline: none !important;
+        font-size: 14px !important;
+        font-family: inherit !important;
+        background: #f8fafc !important;
+        transition: all 0.2s ease !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        min-width: 0 !important;
+      }
+
+      .cw-input:focus {
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .cw-send-btn {
+        width: 40px !important;
+        height: 40px !important;
+        border: none !important;
+        border-radius: 50% !important;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.2s ease !important;
+        flex-shrink: 0 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: relative !important;
+      }
+
+      .cw-send-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      }
+
+      .cw-send-btn svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
       }
 
       .cw-form-welcome {
@@ -1026,6 +1101,30 @@ class WebChat {
           </form>
         </div>
         
+        <!-- Chat Container - SABIT LAYOUT -->
+        <div class="cw-chat-container" style="display: none !important; flex-direction: column !important; height: 100% !important; width: 100% !important; position: relative !important; overflow: hidden !important;">
+          <div class="cw-messages" id="cw-messages" style="flex: 1 1 auto !important; overflow-y: auto !important; overflow-x: hidden !important; padding: 15px !important; background: white !important; display: flex !important; flex-direction: column !important; gap: 12px !important; min-height: 0 !important; position: relative !important;">
+            <div class="cw-welcome">
+              <div class="cw-welcome-icon">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+                </svg>
+              </div>
+              <h3>Merhaba! 👋</h3>
+              <p>Size nasıl yardımcı olabilirim?</p>
+            </div>
+          </div>
+          
+          <div class="cw-input-container" style="flex-shrink: 0 !important; display: flex !important; padding: 15px !important; border-top: 1px solid #e2e8f0 !important; background: white !important; align-items: center !important; gap: 10px !important; position: relative !important; width: 100% !important; box-sizing: border-box !important;">
+            <input type="text" id="cw-input" class="cw-input" placeholder="${this.config.placeholder}" style="flex: 1 1 auto !important; padding: 12px 16px !important; border: 1px solid #e2e8f0 !important; border-radius: 25px !important; outline: none !important; font-size: 14px !important; background: #f8fafc !important; display: block !important; visibility: visible !important; opacity: 1 !important; min-width: 0 !important;">
+            <button type="button" id="cw-send-btn" class="cw-send-btn" style="width: 40px !important; height: 40px !important; border: none !important; border-radius: 50% !important; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; color: white !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0 !important; visibility: visible !important; opacity: 1 !important; position: relative !important;">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="width: 18px !important; height: 18px !important; fill: currentColor !important;">
+                <path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
       </div>
     `;
     
@@ -1037,6 +1136,8 @@ class WebChat {
     const toggleButton = document.getElementById('cw-toggle');
     const closeButton = document.getElementById('cw-close-btn');
     const continueButton = document.getElementById('cw-continue-btn');
+    const sendButton = document.getElementById('cw-send-btn');
+    const chatInput = document.getElementById('cw-input');
     const checkboxes = document.querySelectorAll('#cw-contact-form input[type="checkbox"]');
     const emailInput = document.getElementById('cw-email');
     const nameInput = document.getElementById('cw-name');
@@ -1059,8 +1160,35 @@ class WebChat {
     nameInput.addEventListener('input', () => this.validateForm());
     phoneInput.addEventListener('input', () => this.validateForm());
     
-    continueButton.addEventListener('click', () => this.handleFormSubmit());
+    continueButton.addEventListener('click', (e) => {
+      console.log('🖱️ Continue button clicked!', e);
+      console.log('🔘 Button disabled?', continueButton.disabled);
+      console.log('🔘 Button classes:', continueButton.className);
+      
+      e.preventDefault(); // Form submit'i engelle
+      
+      // Disabled ise zorla enable et
+      if (continueButton.disabled) {
+        console.log('⚠️ Button was disabled, forcing enable...');
+        continueButton.disabled = false;
+      }
+      
+      this.handleFormSubmit();
+    });
     
+    // Chat input event listeners
+    if (sendButton) {
+      sendButton.addEventListener('click', () => this.sendMessage());
+    }
+    
+    if (chatInput) {
+      chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          this.sendMessage();
+        }
+      });
+    }
+
     // Initial validation
     this.validateForm();
   }
@@ -1088,16 +1216,74 @@ class WebChat {
     }
   }
 
-  sendMessage() {
+  async sendMessage() {
     const input = document.getElementById('cw-input');
     const message = input.value.trim();
     
     if (!message) return;
     
+    // Kullanıcı mesajını ekle
     this.addMessage(message, 'user');
     input.value = '';
     
-    // Bot cevabı için typing indicator göster
+    // Chat session aktif değilse eski bot sistemini kullan
+    if (!this.chatSessionActive || !this.chatToken) {
+      this.sendOfflineMessage(message);
+      return;
+    }
+    
+    // API'ye mesaj gönder
+    try {
+      await this.sendMessageToAPI(message);
+    } catch (error) {
+      console.error('Message send error:', error);
+      this.addMessage('Mesaj gönderilemedi. Lütfen tekrar deneyin.', 'bot');
+    }
+  }
+
+  // API'ye mesaj gönderme fonksiyonu
+  async sendMessageToAPI(messageText) {
+    try {
+      const requestBody = {
+        token: this.chatToken,
+        message_body: messageText
+      };
+      
+      console.log('📤 Sending message...', requestBody);
+      console.log('📡 API URL:', `${this.config.apiUrl}/put_message`);
+      
+      const response = await fetch(`${this.config.apiUrl}/put_message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      console.log('📥 Message Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Message API Error:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Message sent successfully:', result);
+      
+      // Başarılı gönderim sonrası typing indicator göster
+      this.showTyping();
+      
+      return result;
+      
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      throw error;
+    }
+  }
+
+  // Offline durumda eski bot sistemini kullan
+  sendOfflineMessage(message) {
     setTimeout(() => {
       this.showTyping();
       
@@ -1298,12 +1484,19 @@ class WebChat {
     }
   }
   
-  handleFormSubmit() {
+  async handleFormSubmit() {
+    console.log('🔄 Form submit triggered!');
+    
     const form = document.getElementById('cw-contact-form');
+    if (!form) {
+      console.error('❌ Form not found!');
+      return;
+    }
+    
     const formData = new FormData(form);
     
     // Form verilerini obje olarak tut
-    this.customerData = {
+    const customerData = {
       name: formData.get('name'),
       email: formData.get('email'),
       phone: formData.get('countryCode') + formData.get('phone'),
@@ -1314,8 +1507,176 @@ class WebChat {
       }
     };
     
-    // Loading sayfasını göster
-    this.showLoadingPage();
+    console.log('📝 Form data:', customerData);
+    
+    // Direkt chat ekranına geç
+    this.showChatInterface();
+    
+    // Karşılama mesajını hemen göster
+    this.showWelcomeMessage(customerData);
+    
+    // Arka planda API çağrısını yap
+    try {
+      await this.startChatSession(customerData);
+      console.log('✅ Chat session started in background');
+    } catch (error) {
+      console.error('❌ Background API error:', error);
+      // Hata durumunda kullanıcıya bilgi ver ama chat'i kesme
+      setTimeout(() => {
+        this.addMessage('⚠️ Bağlantı kurulurken bir sorun oluştu, ancak mesajlarınızı gönderebilirsiniz.', 'bot');
+      }, 1000);
+    }
+  }
+  
+  // Chat arayüzünü göster (loading'den sonra)
+  showChatInterface() {
+    console.log('🎯 Showing chat interface...');
+    
+    const container = document.getElementById('cw-window');
+    if (!container) {
+      console.error('❌ Chat window container not found!');
+      return;
+    }
+    
+    console.log('✅ Container found:', container);
+    
+    // Mevcut chat arayüzünü göster, form/loading'i gizle
+    const formContainer = container.querySelector('.cw-form-container');
+    const loadingContainer = container.querySelector('.cw-loading-container');
+    const chatContainer = container.querySelector('.cw-chat-container');
+    
+    console.log('📦 Containers:', {
+      form: formContainer ? 'found' : 'not found',
+      loading: loadingContainer ? 'found' : 'not found', 
+      chat: chatContainer ? 'found' : 'not found'
+    });
+    
+    if (formContainer) {
+      formContainer.style.display = 'none';
+      console.log('✅ Form container hidden');
+    }
+    if (loadingContainer) {
+      loadingContainer.style.display = 'none';
+      console.log('✅ Loading container hidden');
+    }
+    if (chatContainer) {
+      // Chat container'ı göster - SABIT LAYOUT
+      chatContainer.style.setProperty('display', 'flex', 'important');
+      chatContainer.style.setProperty('flex-direction', 'column', 'important');
+      chatContainer.style.setProperty('height', '100%', 'important');
+      chatContainer.style.setProperty('width', '100%', 'important');
+      chatContainer.style.setProperty('position', 'relative', 'important');
+      chatContainer.style.setProperty('overflow', 'hidden', 'important');
+      console.log('✅ Chat container shown with STABLE layout');
+      
+      // Input alanını da kontrol et ve zorla görünür yap
+      const inputContainer = chatContainer.querySelector('.cw-input-container');
+      const inputElement = chatContainer.querySelector('#cw-input');
+      const sendButton = chatContainer.querySelector('#cw-send-btn');
+      
+      console.log('🔍 Input elements:', {
+        inputContainer: inputContainer ? 'found' : 'not found',
+        inputElement: inputElement ? 'found' : 'not found',
+        sendButton: sendButton ? 'found' : 'not found'
+      });
+      
+      // Input container'ı zorla görünür yap - SABIT
+      if (inputContainer) {
+        inputContainer.style.setProperty('display', 'flex', 'important');
+        inputContainer.style.setProperty('flex-shrink', '0', 'important');
+        inputContainer.style.setProperty('padding', '15px', 'important');
+        inputContainer.style.setProperty('border-top', '1px solid #e2e8f0', 'important');
+        inputContainer.style.setProperty('background', 'white', 'important');
+        inputContainer.style.setProperty('align-items', 'center', 'important');
+        inputContainer.style.setProperty('gap', '10px', 'important');
+        inputContainer.style.setProperty('position', 'relative', 'important');
+        inputContainer.style.setProperty('width', '100%', 'important');
+        inputContainer.style.setProperty('box-sizing', 'border-box', 'important');
+        console.log('✅ Input container PERMANENTLY visible');
+      }
+      
+      if (inputElement) {
+        // Input'u zorla görünür yap - KALICI
+        inputElement.style.setProperty('display', 'block', 'important');
+        inputElement.style.setProperty('visibility', 'visible', 'important');
+        inputElement.style.setProperty('opacity', '1', 'important');
+        inputElement.style.setProperty('flex', '1 1 auto', 'important');
+        inputElement.style.setProperty('padding', '12px 16px', 'important');
+        inputElement.style.setProperty('border', '1px solid #e2e8f0', 'important');
+        inputElement.style.setProperty('border-radius', '25px', 'important');
+        inputElement.style.setProperty('outline', 'none', 'important');
+        inputElement.style.setProperty('font-size', '14px', 'important');
+        inputElement.style.setProperty('background', '#f8fafc', 'important');
+        inputElement.style.setProperty('min-width', '0', 'important');
+        
+        console.log('✅ Input element PERMANENTLY visible');
+        console.log('📝 Input element STABLE style:', {
+          display: inputElement.style.display,
+          visibility: inputElement.style.visibility,
+          opacity: inputElement.style.opacity,
+          flex: inputElement.style.flex
+        });
+        
+        // Input'a focus ver
+        setTimeout(() => {
+          inputElement.focus();
+          console.log('🎯 Input focused and STABLE');
+        }, 200);
+      }
+      
+      if (sendButton) {
+        // Send button'u zorla görünür yap - KALICI
+        sendButton.style.setProperty('display', 'flex', 'important');
+        sendButton.style.setProperty('visibility', 'visible', 'important');
+        sendButton.style.setProperty('opacity', '1', 'important');
+        sendButton.style.setProperty('width', '40px', 'important');
+        sendButton.style.setProperty('height', '40px', 'important');
+        sendButton.style.setProperty('flex-shrink', '0', 'important');
+        sendButton.style.setProperty('position', 'relative', 'important');
+        sendButton.style.setProperty('align-items', 'center', 'important');
+        sendButton.style.setProperty('justify-content', 'center', 'important');
+        console.log('✅ Send button PERMANENTLY visible');
+      }
+      
+    } else {
+      console.error('❌ Chat container not found! Cannot show chat interface.');
+    }
+  }
+
+  // Karşılama mesajını göster
+  showWelcomeMessage(customerData) {
+    // Önce welcome div'ini temizle
+    const messagesContainer = document.getElementById('cw-messages');
+    const welcome = messagesContainer.querySelector('.cw-welcome');
+    if (welcome) {
+      welcome.remove();
+    }
+
+    // Kişiselleştirilmiş karşılama mesajı
+    const customerName = customerData.name || 'Değerli Müşterimiz';
+    const welcomeMessages = [
+      `Merhaba ${customerName}! 👋`,
+       
+      `Size nasıl yardımcı olabilirim? Bir temsilcimiz kısa süre içinde sizinle iletişime geçecek.`
+    ];
+
+    // Mesajları hızlıca sırayla göster
+    welcomeMessages.forEach((message, index) => {
+      setTimeout(() => {
+        this.addMessage(message, 'bot');
+      }, index * 500); // 500ms aralıklarla daha hızlı
+    });
+
+    // Son olarak typing indicator'ı göster (temsilci yazıyor gibi)
+    setTimeout(() => {
+      this.showTyping();
+      
+      // 2 saniye sonra typing'i gizle ve bekleme mesajı göster
+      setTimeout(() => {
+        this.hideTyping();
+        this.addMessage('Bir temsilcimiz sizinle görüşmek için bekliyor. Mesajınızı yazabilirsiniz! 💬', 'bot');
+      }, 2000); // Daha kısa bekleme
+    }, welcomeMessages.length * 500);
   }
   
   showLoadingPage() {
@@ -1369,6 +1730,11 @@ class WebChat {
           this.isOpen = false;
         }, 300); // Animasyon süresi
         
+        // Aktif chat session varsa sonlandır
+        if (this.chatSessionActive && this.chatToken) {
+          this.endChatSession();
+        }
+        
         // Verileri koruyoruz - sadece pencereyi kapatıyoruz
         // customerData ve form durumu korunuyor
       }
@@ -1377,6 +1743,160 @@ class WebChat {
 
   getMessages() {
     return this.messages;
+  }
+
+  // Chat başlatma API'sini çağır
+  async startChatSession(customerData = {}) {
+    if (this.isConnecting || this.chatSessionActive) {
+      console.log('Chat session already active or connecting...');
+      return;
+    }
+
+    this.isConnecting = true;
+    
+    try {
+      const requestBody = {
+        cwid: this.config.cwid,
+        security_token: this.config.securityToken,
+        namespace: this.config.namespace || '',
+        client_name: customerData.name || this.config.userName || '',
+        client_email: customerData.email || '',
+        phone_number: customerData.phone || '',
+        customer_path: window.location.pathname || '',
+        client_custom_data: JSON.stringify(customerData.customData || {}),
+        lang: this.config.lang || 'tr'
+      };
+
+      // Customer history varsa ekle
+      if (customerData.history && Array.isArray(customerData.history)) {
+        requestBody.customer_history = customerData.history;
+      }
+
+      console.log('🚀 Starting chat session...', requestBody);
+      console.log('📡 API URL:', `${this.config.apiUrl}/new`);
+      
+      const response = await fetch(`${this.config.apiUrl}/new`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response headers:', response.headers);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ API Error Response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ API Response:', result);
+      
+      if (result.token) {
+        this.chatToken = result.token;
+        this.chatSessionActive = true;
+        this.customerData = customerData;
+        
+        console.log('✅ Chat session started successfully!', result);
+        console.log('🎫 Token received:', result.token);
+        
+        return result;
+      } else {
+        throw new Error('No token received from API');
+      }
+      
+    } catch (error) {
+      console.error('❌ Failed to start chat session:', error);
+      
+      // CORS hatası kontrolü
+      if (error.message.includes('CORS') || error.message.includes('fetch')) {
+        console.error('🚫 CORS Error detected - API server may not allow cross-origin requests');
+        this.addMessage('Bağlantı hatası: CORS sorunu. API sunucusu ayarlarını kontrol edin.', 'bot');
+      } else if (error.message.includes('404')) {
+        console.error('🔍 404 Error - API endpoint not found');
+        this.addMessage('API endpoint bulunamadı. URL\'yi kontrol edin.', 'bot');
+      } else if (error.message.includes('401') || error.message.includes('403')) {
+        console.error('🔐 Authentication Error - Invalid credentials');
+        this.addMessage('Kimlik doğrulama hatası. API anahtarlarını kontrol edin.', 'bot');
+      } else {
+        this.addMessage('Bağlantı kurulurken bir hata oluştu. Console\'u kontrol edin.', 'bot');
+      }
+      
+      throw error;
+    } finally {
+      this.isConnecting = false;
+    }
+  }
+
+  // Chat session'ını sonlandır
+  async endChatSession() {
+    if (!this.chatToken) {
+      console.log('No active chat session to end');
+      return;
+    }
+
+    try {
+      // API'ye session sonlandırma isteği gönder
+      const response = await fetch(`${this.config.apiUrl}/end`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: this.chatToken
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Chat session ended successfully:', result);
+      
+    } catch (error) {
+      console.error('Failed to end chat session:', error);
+    } finally {
+      // Her durumda local state'i temizle
+      this.chatToken = null;
+      this.chatSessionActive = false;
+      this.customerData = null;
+      console.log('Chat session ended locally');
+    }
+  }
+
+  // Customer history oluşturma yardımcı fonksiyonu
+  createCustomerHistory() {
+    const history = [];
+    
+    // Mevcut mesajlardan history oluştur
+    this.messages.forEach(msg => {
+      if (msg.sender === 'user') {
+        history.push({
+          message: msg.text,
+          message_date: new Date().toISOString().replace('T', ' ').substring(0, 19)
+        });
+      }
+    });
+    
+    return history;
+  }
+
+  // Chat session'ını history ile başlat
+  async startChatWithHistory(customerData = {}) {
+    // Mevcut mesajlardan history oluştur
+    const history = this.createCustomerHistory();
+    
+    // Customer data'ya history ekle
+    const dataWithHistory = {
+      ...customerData,
+      history: history.length > 0 ? history : undefined
+    };
+    
+    return await this.startChatSession(dataWithHistory);
   }
 
   clearMessages() {
@@ -1405,10 +1925,128 @@ function openPermissionLink(element) {
   }
 }
 
+// Global erişim için WebChat'i window'a ekle
 window.WebChat = WebChat;
 
-// Otomatik başlatma (opsiyonel)
-// document.addEventListener('DOMContentLoaded', () => {
-//   new WebChat();
-// });
+// Debug ve test fonksiyonları
+window.testAPI = async function() {
+  console.log('🧪 Testing API manually...');
+  if (!window.debugChat) {
+    console.error('❌ No chat instance found! Create WebChat first.');
+    return;
+  }
+  
+  try {
+    await window.debugChat.startChatSession({
+      name: 'Test User',
+      email: 'test@example.com',
+      phone: '05551234567'
+    });
+    console.log('✅ API Test successful!');
+  } catch (error) {
+    console.error('❌ API Test failed:', error);
+  }
+};
+
+// Input kontrol fonksiyonu
+window.checkInput = function() {
+  const input = document.getElementById('cw-input');
+  const container = document.getElementById('cw-window');
+  const chatContainer = container?.querySelector('.cw-chat-container');
+  const inputContainer = chatContainer?.querySelector('.cw-input-container');
+  const sendButton = document.getElementById('cw-send-btn');
+  
+  console.log('🔍 FULL Input Check:', {
+    input: input ? 'found' : 'not found',
+    chatContainer: chatContainer ? 'found' : 'not found',
+    inputContainer: inputContainer ? 'found' : 'not found',
+    sendButton: sendButton ? 'found' : 'not found',
+    chatContainerDisplay: chatContainer?.style.display,
+    inputContainerDisplay: inputContainer?.style.display,
+    inputVisible: input ? (input.offsetParent !== null) : 'no input',
+    inputBoundingRect: input ? input.getBoundingClientRect() : 'no input'
+  });
+  
+  if (input) {
+    console.log('📝 Input FULL details:', {
+      value: input.value,
+      placeholder: input.placeholder,
+      disabled: input.disabled,
+      type: input.type,
+      id: input.id,
+      className: input.className,
+      parentElement: input.parentElement?.className,
+      style: input.style.cssText,
+      computedStyle: {
+        display: getComputedStyle(input).display,
+        visibility: getComputedStyle(input).visibility,
+        opacity: getComputedStyle(input).opacity,
+        position: getComputedStyle(input).position
+      }
+    });
+  }
+  
+  // Input yoksa zorla oluştur
+  if (!input) {
+    console.log('⚠️ Input not found! Trying to recreate...');
+    if (inputContainer) {
+      const newInput = document.createElement('input');
+      newInput.type = 'text';
+      newInput.id = 'cw-input';
+      newInput.className = 'cw-input';
+      newInput.placeholder = 'Mesajınızı yazın...';
+      newInput.style.cssText = 'flex: 1; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 25px; outline: none; font-size: 14px;';
+      inputContainer.insertBefore(newInput, inputContainer.firstChild);
+      console.log('✅ Input recreated!');
+    }
+  }
+};
+
+// Otomatik başlatma fonksiyonu
+WebChat.autoInit = function(customConfig = {}) {
+  // Default konfigürasyon
+  const defaultConfig = {
+    title: 'Müşteri Destek',
+    placeholder: 'Mesajınızı yazın...',
+    position: 'bottom-right',
+    botName: 'Asistan',
+    userName: 'Misafir',
+    // API Configuration - Postman'dan alınan gerçek bilgiler
+    apiUrl: 'https://chatserver.alo-tech.com/chat-api',
+    cwid: 'ahRzfm11c3RlcmktaGl6bWV0bGVyaXIYCxILQ2hhdFdpZGdldHMYgICa_s3EpAkMogEcY2l0eXNyZXNpZGVuY2VzLmFsby10ZWNoLmNvbQ',
+    securityToken: 'd67b75778e32a9c71645c5aa84264220403d27102f366fa2cb1eb85afcb73417',
+    namespace: 'citysresidences.alo-tech.com',
+    lang: 'tr'
+  };
+  
+  // Custom config ile default'u birleştir
+  const finalConfig = { ...defaultConfig, ...customConfig };
+  
+  // Chat instance'ını oluştur
+  const chat = new WebChat(finalConfig);
+  
+  // Debug için global erişim
+  window.debugChat = chat;
+  
+  // Debug bilgilerini göster
+  setTimeout(() => {
+    console.log('Web Chat başarıyla yüklendi! ✅');
+    console.log('🔧 Debug: API Config:', {
+      apiUrl: chat.config.apiUrl,
+      cwid: chat.config.cwid,
+      securityToken: chat.config.securityToken ? '***' + chat.config.securityToken.slice(-10) : 'NOT SET',
+      namespace: chat.config.namespace
+    });
+  }, 1000);
+  
+  return chat;
+};
+
+// Sayfa yüklendiğinde otomatik başlat
+document.addEventListener('DOMContentLoaded', function() {
+  // Eğer manuel olarak WebChat oluşturulmamışsa otomatik başlat
+  if (!window.debugChat) {
+    WebChat.autoInit();
+  }
+});
 
