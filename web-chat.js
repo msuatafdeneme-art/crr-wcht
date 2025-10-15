@@ -1,6 +1,11 @@
 /**
- * WebChat - Modern Web Chat Widget
- * Kullanım: Sayfanıza script'i ekleyin ve WebChat.init() çağırın
+Aşağıdaki Şekilde Test Edebilirsiniz ;
+<script src=https://cdn.jsdelivr.net/gh/msuatafdeneme-art/crr-wcht@main/web-chat.js></script> 
+ <script>
+        const webChat = new WebChat({
+            position: 'bottom-right'
+        });
+    </script>
  */
 
 class WebChat {
